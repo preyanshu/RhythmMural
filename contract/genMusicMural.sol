@@ -49,6 +49,10 @@ contract MusicContest is AutomationCompatibleInterface {
     event FundsDeposited(address indexed depositor, uint256 amount);
     event Voted(address indexed voter, uint256 indexed submissionIndex);
     event VoterRewarded(address indexed voter, uint256 reward);
+    event NoWinnersDeclared(string message);
+    event InsufficientFunds(string message);
+
+
 
     constructor(uint256 _interval) {
         interval = _interval;
@@ -111,16 +115,34 @@ function performUpkeep(bytes calldata /* performData */) external override {
     }
 
     // Call the internal function to process the contest
-    processContest();
+    this.processContest();
 }
 
 /* Internal function to process the contest */
-function processContest() internal {
-    require(submissions.length > 0, "No submissions available to process");
-    require(totalFunds > 0, "No funds available for distribution");
-    require(address(this).balance >= totalFunds, "Contract does not have enough balance");
+function processContest() external {
+    // Update the timestamp regardless of the outcome
+    lastTimeStamp = block.timestamp;
 
-    uint256 numWinners = submissions.length > 3 ? 3 : 1;
+    // If no submissions, declare no winners and return
+    if (submissions.length == 0) {
+        emit NoWinnersDeclared("No submissions available for processing");
+        delete currentTheme;
+        delete voters;
+        totalFunds = 0 ; 
+        return;
+    }
+
+    // Check if the contract has sufficient funds
+    if (address(this).balance < totalFunds) {
+        emit InsufficientFunds("Contract does not have enough balance to distribute rewards");
+        delete submissions;
+        delete currentTheme;
+        delete voters;
+        totalFunds = 0 ; 
+        return;
+    }
+
+    uint256 numWinners = submissions.length > 3 ? 3 : submissions.length; // Max 3 winners or less, depending on submissions
 
     // Find the top submissions using a simplified sorting approach
     uint256[] memory indices = new uint256[](numWinners);
@@ -140,45 +162,45 @@ function processContest() internal {
         }
     }
 
-    // Ensure there are valid winners
-    require(topVotes.length > 0, "No valid winners found");
-
     // Calculate total votes for the top winners
-    uint256 totalWinnerVotes;
+    uint256 totalWinnerVotes = 0;
     for (uint256 i = 0; i < numWinners; i++) {
         totalWinnerVotes += topVotes[i];
     }
 
-    // If no votes, distribute winner share equally
-    uint256 winnerShare = (totalFunds * 75) / 100;
-    uint256 payout;
-    if (totalWinnerVotes > 0) {
-        winnerShare = (totalFunds * 75) / 100;
-        payout = (submissions[indices[0]].votes * winnerShare) / totalWinnerVotes;
-    } else {
-        // If no votes, distribute equally
-        payout = winnerShare / numWinners;
+    // Count total voters (number of voters in all submissions)
+    uint256 totalVoters = 0;
+    for (uint256 i = 0; i < numWinners; i++) {
+        totalVoters += submissions[indices[i]].voters.length;
     }
 
-    // Calculate fund distribution
-    uint256 ownerShare = (totalFunds * 5) / 100;
-    uint256 voterShare = (totalFunds * 20) / 100;
+    // Calculate owner, winner, and voter shares
+    uint256 ownerShare = (totalFunds * 5) / 100; // 5% for owner
+    uint256 remainingFunds = totalFunds - ownerShare;
+
+    uint256 winnerShare;
+    uint256 voterShare;
+
+    if (totalVoters == 0) {
+        // If no voters, allocate all remaining funds to the winners
+        winnerShare = remainingFunds;
+        voterShare = 0;
+    } else {
+        // Add weight to winners: Increase the winner share by a factor (e.g., 2x)
+        uint256 totalWeight = (numWinners * 3) + totalVoters;  // Winner weight is 3x
+        winnerShare = (remainingFunds * (numWinners * 3)) / totalWeight;
+        voterShare = remainingFunds - winnerShare;
+    }
 
     // Transfer 5% to the contract owner
-    require(owner != address(0), "Owner address is not set");
-    payable(owner).transfer(ownerShare);
+    if (owner != address(0) && ownerShare > 0) {
+        payable(owner).transfer(ownerShare);
+    }
 
     // Distribute rewards among winners and voters
     for (uint256 i = 0; i < numWinners; i++) {
         uint256 index = indices[i];
-        
-        // If no votes, give equal payout
-        if (totalWinnerVotes == 0) {
-            payout = winnerShare / numWinners;
-        }
-
-        require(submissions[index].submitter != address(0), "Invalid submitter address");
-        require(payout > 0, "Payout for the winner must be greater than 0");
+        uint256 payout = totalWinnerVotes == 0 ? (winnerShare / numWinners) : (submissions[index].votes * winnerShare) / totalWinnerVotes;
 
         winners.push(
             Winner({
@@ -193,35 +215,35 @@ function processContest() internal {
             })
         );
 
-        payable(submissions[index].submitter).transfer(payout);
-        emit WinnerSelected(
-            submissions[index].submitter,
-            submissions[index].musicUrl,
-            submissions[index].theme,
-            submissions[index].votes,
-            payout
-        );
+        if (payout > 0 && submissions[index].submitter != address(0)) {
+            payable(submissions[index].submitter).transfer(payout);
+            emit WinnerSelected(
+                submissions[index].submitter,
+                submissions[index].musicUrl,
+                submissions[index].theme,
+                submissions[index].votes,
+                payout
+            );
+        }
 
+        // Handle voter rewards
         if (submissions[index].voters.length > 0) {
             uint256 voterReward = voterShare / submissions[index].voters.length;
-            require(voterReward > 0, "Voter reward must be greater than 0");
-
             for (uint256 j = 0; j < submissions[index].voters.length; j++) {
-                require(submissions[index].voters[j] != address(0), "Invalid voter address");
-                payable(submissions[index].voters[j]).transfer(voterReward);
-                emit VoterRewarded(submissions[index].voters[j], voterReward);
+                if (voterReward > 0 && submissions[index].voters[j] != address(0)) {
+                    payable(submissions[index].voters[j]).transfer(voterReward);
+                    emit VoterRewarded(submissions[index].voters[j], voterReward);
+                }
             }
         }
     }
 
-    // Reset submissions and update timestamp
+    // Clear submissions and theme
     delete submissions;
     delete voters;
     delete currentTheme;
-    lastTimeStamp = block.timestamp;
+    totalFunds = 0 ; 
 }
-
-
 
 
     /* Get all submissions */
