@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Trophy, Users, DollarSign, Calendar, Loader, Music } from "lucide-react";
+import { get } from "http";
+import { getWinners } from "@/utils/contractUtils";
+import { useAuth } from "@/context/AuthContext";
 
 // Define types for each contest and winner structure
 interface Winner {
@@ -22,44 +25,59 @@ const PreviousPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { walletSdk } = useAuth();
+
   // Dummy function to simulate data fetching
-  const fetchContests = () => {
-    setTimeout(() => {
-      setContests([
-        [
-          "submitter",
-          "/path/to/audio1.mp3",
-          "theme",
-          "promptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptprompt",
-          "120", // votes as string
-          "500", // payout as string
-          "1708732800", // UNIX timestamp as string
-          "50", // voterShare as string
-        ],
-        [
-          "submitter2",
-          "/path/to/audio2.mp3",
-          "theme",
-          "prompt2",
-          "90", // votes as string
-          "300", // payout as string
-          "1708732800", // UNIX timestamp as string (same contest)
-          "50", // voterShare as string
-        ],
-        [
-          "submitter3",
-          "/path/to/audio3.mp3",
-          "theme",
-          "prompt3",
-          "150", // votes as string
-          "400", // payout as string
-          "1708732800", // UNIX timestamp as string (new contest)
-          "40", // voterShare as string
-        ],
-      ]);
-      setLoading(false);
-    }, 2000);
+  const fetchContests = async () => {
+    try {
+      // setTimeout(() => {
+      //   setContests([
+      //     [
+      //       "submitter",
+      //       "/path/to/audio1.mp3",
+      //       "theme",
+      //       "promptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptprompt",
+      //       "120", // votes as string
+      //       "500", // payout as string
+      //       "1708732800", // UNIX timestamp as string
+      //       "50", // voterShare as string
+      //     ],
+      //     [
+      //       "submitter2",
+      //       "/path/to/audio2.mp3",
+      //       "theme",
+      //       "prompt2",
+      //       "90", // votes as string
+      //       "300", // payout as string
+      //       "1708732800", // UNIX timestamp as string (same contest)
+      //       "50", // voterShare as string
+      //     ],
+      //     [
+      //       "submitter3",
+      //       "/path/to/audio3.mp3",
+      //       "theme",
+      //       "prompt3",
+      //       "150", // votes as string
+      //       "400", // payout as string
+      //       "1708732800", // UNIX timestamp as string (new contest)
+      //       "40", // voterShare as string
+      //     ],
+      //   ]);
+      //   setLoading(false);
+      // }, 2000);
+  
+      setLoading(true); // Set loading to true before fetching
+      const contests = await getWinners(walletSdk);
+      setContests(contests);
+    } catch (error) {
+      console.error("Error fetching contests:", error);
+      // Optionally set an error state or show a message to the user
+      setError("Failed to fetch contests. Please try again.");
+    } finally {
+      setLoading(false); // Ensure loading is set to false even if an error occurs
+    }
   };
+  
 
   useEffect(() => {
     fetchContests();
@@ -121,6 +139,17 @@ const PreviousPage: React.FC = () => {
       </button>
     </div>
   )}
+
+
+  {!loading && groupedContests.length === 0 && !error && (
+    <div className="bg-gray-800 text-gray-300 p-6 rounded-lg shadow-md mb-6 text-center border border-purple-800">
+      <h2 className="text-2xl font-bold text-red-500 mb-4">No Contests Yet</h2>
+      <p className="text-lg ">There are no contests to show yet. Check back later.</p>
+    </div>
+  )}
+
+
+  {/* Contest Details */}
 
       {loading ? (
         <div className="flex justify-center items-center h-64">

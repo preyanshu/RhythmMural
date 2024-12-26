@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader } from 'lucide-react';
 import { Music, Lightbulb, AlertTriangle } from 'lucide-react';
-import { submitMusic } from '@/utils/contractUtils';
+import { submitMusic , getCurrentTheme } from '@/utils/contractUtils';
 import { useAuth } from '@/context/AuthContext';
 import { toast, ToastContainer } from 'react-toastify'; 
 import { generateMusic, generateMusicTheme, uploadToCloudinary } from '@/utils/musicgenUtils';
@@ -67,13 +67,17 @@ const MusicGenerator: React.FC = () => {
   
     try {
       // Fetch the current theme from the contract
-      // const currentTheme = await getCurrentTheme(walletSdk);
-      let currentTheme = "";
+      const currentTheme = await getCurrentTheme(walletSdk);
+
+      let themeToSubmit : any = currentTheme;
+
+      alert(JSON.stringify(currentTheme));
+      // let currentTheme = "";
   
-      let themeToSubmit = currentTheme;
+    
   
       // If the current theme is empty, generate a new theme
-      if (!currentTheme || currentTheme==="" || currentTheme==="0x") {
+      if (!currentTheme || currentTheme!=="" ) {
         console.log('Generating new theme...');
         themeToSubmit = await generateMusicTheme(selectedTrack.prompt);
         console.log('Generated theme:', themeToSubmit);
@@ -84,19 +88,22 @@ const MusicGenerator: React.FC = () => {
       console.log('Uploaded to Cloudinary:', cloudinaryUrl);
   
       setCloudAudioUrl(cloudinaryUrl);
-  
+      setIsUploading(false);
       // Submit the music with the theme
       setIsSubmitting(true);
+      
       const tx = await submitMusic(walletSdk, cloudinaryUrl, themeToSubmit, selectedTrack.prompt);
-  
+      
+
+      setIsSubmitting(false);
       toast.success('Music submitted successfully!');
       alert(JSON.stringify(tx));
     } catch (error) {
-      console.error('Error submitting music:', error);
-      toast.error('Failed to submit music.');
-    } finally {
       setIsUploading(false);
       setIsSubmitting(false);
+      toast.error('Failed to submit music.');
+      console.error('Error submitting music:', error);
+      
     }
   };
   
@@ -140,9 +147,9 @@ const MusicGenerator: React.FC = () => {
 
   <button
     onClick={handleSubmit}
-    disabled={isUploading || !selectedTrack}
+    disabled={isUploading || !selectedTrack || isSubmitting}
     className={`px-6 py-3 rounded-lg text-white font-bold border-2 border-purple-500 ${
-      isUploading || isSubmitting
+      (isUploading || isSubmitting)
         ? 'bg-purple-400'
         : 'bg-purple-500 hover:bg-purple-600 hover:shadow-lg hover:shadow-purple-500'
     } disabled:opacity-50 focus:outline-none focus:ring-4 focus:ring-purple-500`}
@@ -151,7 +158,7 @@ const MusicGenerator: React.FC = () => {
       {(isUploading || isSubmitting) && (
         <Loader className="animate-spin w-5 h-5 mx-auto mr-3" />
       )}
-      {isUploading ? 'Uploading' : isSubmitting ? 'Submitting' : 'Submit'}
+      {isUploading ? 'Uploading' : isSubmitting ? 'Submitting' : 'Submit (0.02 tBNB)'}
     </div>
   </button>
 </div>
@@ -207,7 +214,7 @@ const MusicGenerator: React.FC = () => {
           <div className="mt-6 text-center">
             <h2 className="text-2xl font-semibold mb-2">☁️ Uploaded Audio</h2>
             <a href={cloudAudioUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-              Click here to listen to the uploaded audio
+              Click here to download the uploaded audio
             </a>
           </div>
         )}

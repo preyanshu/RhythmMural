@@ -457,3 +457,11 @@ function normalizeProxyData(data: any): any {
 	const transaction = await contract.vote(submissionIndex);
 	await transaction.wait();
   }
+
+  export async function getCurrentTheme(walletSdk: any): Promise<string> {
+	const provider = new ethers.BrowserProvider(walletSdk.ethereum);
+	const signer = await provider.getSigner();
+	const contract = getContract(signer);
+	const theme: any = await contract.currentTheme();
+	return theme;
+  }

@@ -8,12 +8,12 @@
 import { useEffect, useState } from 'react';
 
 export const TESTNET_PARAMS = {
-    chainId: '31337', // Hardhat's default chain ID
-    chainName: 'Hardhat Local Network',
-    rpcUrls: ['https://call-ericsson-performing-pendant.trycloudflare.com'], // Hardhat's default RPC URL
+    chainId: '31338', // Hardhat's default chain ID
+    chainName: 'Hardhat Local Network_2',
+    rpcUrls: ['https://indian-updated-june-shareholders.trycloudflare.com'], // Hardhat's default RPC URL
     nativeCurrency: {
-      name: 'ETH',
-      symbol: 'ETH',
+      name: 'ETH2',
+      symbol: 'ETH2',
       decimals: 18,
     },
     blockExplorerUrls: [], // Local networks typically don't have block explorers
@@ -23,7 +23,7 @@ export default function useCurrentUser() {
 	const [userAddr, setUserAddr] = useState(null);
 	const [chainId, setChainId] = useState<any>(null);
 	const [walletSdk, setWalletSdk] = useState<any>(null);
-	const DEFAULT_CHAIN_ID = '0x7A69'; 
+	const DEFAULT_CHAIN_ID = '0x7A6A'; 
 
 	useEffect(() => {
 		// Only initialize the SDK on the client
