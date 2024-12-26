@@ -174,9 +174,10 @@ const TodayPage = () => {
             Submission {index + 1}
           </h2>
           <p className="text-sm text-gray-400 mb-2">
-            <strong>Submitter:</strong>{" "}
-            <span className="truncate block">{submission[0]}</span>
-          </p>
+  <strong>Submitter:</strong>{" "}
+  <span className="block break-words">{submission[0]}</span>
+</p>
+
           <div className="w-full mb-4 bg-gray-700 rounded-lg overflow-hidden">
             <audio
               controls
@@ -189,12 +190,19 @@ const TodayPage = () => {
               Your browser does not support the audio element.
             </audio>
           </div>
-          <button
-            className="bg-purple-800 text-gray-100 py-2 px-4 rounded-md shadow-md hover:bg-purple-700 transition"
-            onClick={() => handleVote(index)}
-          >
-            Vote
-          </button>
+          {
+  voters.includes(userAddr) ? (
+    <span className="text-gray-500">Already Voted</span>
+  ) : (
+    <button
+      className="bg-purple-800 text-gray-100 py-2 px-4 rounded-md shadow-md hover:bg-purple-700 transition"
+      onClick={() => handleVote(index)}
+    >
+      Vote
+    </button>
+  )
+}
+
         </div>
       ))}
     </div>

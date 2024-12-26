@@ -178,9 +178,13 @@ const PreviousPage: React.FC = () => {
 
             {contest.winners.map((winner, winnerIndex) => (
   <div key={winnerIndex} className="bg-purple-400 p-3 rounded-lg mb-3 shadow-sm text-black">
-    <div className="flex items-center justify-between">
-      <p className="font-medium">Winner {winnerIndex + 1}: {winner.submitter}</p>
-    </div>
+ 
+  <p className="font-small mb-2">
+    Winner {winnerIndex + 1}: <br />
+    <span className="break-words bg-[red]">{winner.submitter}</span>
+  </p>
+
+
     <p className="text-gray-700 text-sm mb-2">
       Prompt:{" "}
       <span className="italic break-words">
