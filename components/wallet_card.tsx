@@ -5,9 +5,9 @@ const WalletCard = () => {
   const { userAddr, chainId, logIn, logOut } = useAuth();
 
   return (
-    <div className="card">
-				<h1 className="card-title">Connect UXUY Wallet</h1>
-				<p className="card-subtitle">
+    <div className="card bg-gradient-to-br from-black via-gray-900 to-purple-950 text-gray-200">
+				<h1 className="card-title text-purple-400">Connect UXUY Wallet</h1>
+				<p className="card-subtitle text-gray-300">
 					Connect your wallet to get started
 				</p>
 
@@ -35,7 +35,7 @@ const WalletCard = () => {
 						</button>
 					</div>
 				) : (
-					<button onClick={logIn} className="button button-connect">
+					<button onClick={logIn} className="button button-connect bg-purple-400 hover:bg-purple-600">
 						Connect Wallet
 					</button>
 				)}

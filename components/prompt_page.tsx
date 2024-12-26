@@ -3,35 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { Loader } from 'lucide-react';
 import { Music, Lightbulb, AlertTriangle } from 'lucide-react';
-import { submitMusic, getSubmissionFee } from '@/utils/contractUtils';
+import { submitMusic } from '@/utils/contractUtils';
 import { useAuth } from '@/context/AuthContext';
-import { toast, ToastContainer } from 'react-toastify'; // Importing toast
-
-const uploadToCloudinary = async (audioBlob: Blob): Promise<string> => {
-  const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dbo7hzofg/raw/upload';
-  const formData = new FormData();
-  formData.append('file', audioBlob);
-  formData.append('upload_preset', 'test123');
-
-  console.log(audioBlob.type);
-
-  try {
-    const response = await fetch(cloudinaryUrl, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to upload audio to Cloudinary');
-    }
-
-    const result = await response.json();
-    return result.secure_url;
-  } catch (error) {
-    console.error('Error uploading audio to Cloudinary:', error);
-    throw error;
-  }
-};
+import { toast, ToastContainer } from 'react-toastify'; 
+import { generateMusic, generateMusicTheme, uploadToCloudinary } from '@/utils/musicgenUtils';
 
 interface Track {
   prompt: string;
@@ -51,82 +26,80 @@ const MusicGenerator: React.FC = () => {
 
   const { walletSdk } = useAuth();
 
+
+
   const queryMusic = async (data: { inputs: string }) => {
     setIsLoading(true);
     setElapsedTime(0);
-
+  
     const interval = setInterval(() => {
       setElapsedTime((prevTime) => prevTime + 1);
     }, 1000);
-
+  
     setTimerInterval(interval);
-
+  
     try {
-      const response = await fetch(
-        'https://api-inference.huggingface.co/models/facebook/musicgen-small',
-        {
-          headers: {
-            Authorization: 'Bearer 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',
-            'Content-Type': 'application/json',
-          },
-          method: 'POST',
-          body: JSON.stringify(data),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch music');
-      }
-
-      const result = await response.blob(); // The actual audio blob
-
+      const audioBlob = await generateMusic(data); // Call the separate function
+  
       setTracks((prevTracks) => [
         ...prevTracks,
-        { prompt: data.inputs, blob: result },
+        { prompt: data.inputs, blob: audioBlob },
       ]);
-
-      setIsLoading(false);
-
     } catch (error) {
-      toast.error('Failed to generate music.');
-      console.error('Error fetching audio:', error);
-      setIsLoading(false);
-       // Error toast for music generation
+
+      toast.error('Failed to generate music.'); // Error toast for music generation
+      console.error('Error generating music:', error);
     } finally {
       clearInterval(interval);
       setTimerInterval(null);
+      setIsLoading(false);
     }
   };
+  
 
   const handleSubmit = async () => {
     if (!selectedTrack) {
       toast.error('Please select a track to submit.'); // Error toast if no track is selected
       return;
     }
-      
-    toast.success("hohho");
+  
     setIsUploading(true);
-
+  
     try {
-      const response = await uploadToCloudinary(selectedTrack.blob); // Pass the Blob directly
-      console.log('Uploaded to Cloudinary:', response);
-
-      setCloudAudioUrl(response); // Set the actual Cloudinary URL after successful upload
-      setIsUploading(false);
-
+      // Fetch the current theme from the contract
+      // const currentTheme = await getCurrentTheme(walletSdk);
+      let currentTheme = "";
+  
+      let themeToSubmit = currentTheme;
+  
+      // If the current theme is empty, generate a new theme
+      if (!currentTheme || currentTheme==="" || currentTheme==="0x") {
+        console.log('Generating new theme...');
+        themeToSubmit = await generateMusicTheme(selectedTrack.prompt);
+        console.log('Generated theme:', themeToSubmit);
+      }
+  
+      // Upload audio to Cloudinary
+      const cloudinaryUrl = await uploadToCloudinary(selectedTrack.blob);
+      console.log('Uploaded to Cloudinary:', cloudinaryUrl);
+  
+      setCloudAudioUrl(cloudinaryUrl);
+  
+      // Submit the music with the theme
       setIsSubmitting(true);
-
-      const tx = await submitMusic(walletSdk, response, 'mrimrzi', selectedTrack.prompt);
-
-      toast.success('Music submitted successfully!'); // Success toast for music submission
+      const tx = await submitMusic(walletSdk, cloudinaryUrl, themeToSubmit, selectedTrack.prompt);
+  
+      toast.success('Music submitted successfully!');
       alert(JSON.stringify(tx));
     } catch (error) {
       console.error('Error submitting music:', error);
-      toast.error('Failed to submit music.'); // Error toast for music submission
+      toast.error('Failed to submit music.');
+    } finally {
+      setIsUploading(false);
       setIsSubmitting(false);
-      setIsUploading(false); // Handle the uploading state even if an error occurs
     }
   };
+  
 
   return (
     <div className="w-[100vw] max-w-[24rem]  min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-black via-gray-900 to-purple-950 text-gray-200">
@@ -152,7 +125,7 @@ const MusicGenerator: React.FC = () => {
   <button
     onClick={() => queryMusic({ inputs: prompt })}
     disabled={isLoading || !prompt}
-    className={`px-6 py-3 rounded-lg text-white font-bold border-2 border-pink-500 ${
+    className={`px-6 py-1 rounded-lg text-white font-bold border-2 border-pink-500 ${
       isLoading
         ? 'bg-pink-400'
         : 'bg-pink-500 hover:bg-pink-600 hover:shadow-lg hover:shadow-pink-500'
@@ -161,7 +134,7 @@ const MusicGenerator: React.FC = () => {
     {isLoading ? (
       <Loader className="animate-spin w-5 h-5 mx-auto" />
     ) : (
-      'Generate Music'
+      'Generate'
     )}
   </button>
 
@@ -201,10 +174,10 @@ const MusicGenerator: React.FC = () => {
               Generated Tracks
             </h2>
             {tracks.map((track, index) => (
-              <div key={index} className="mb-4 p-2  border rounded-lg flex flex-col items-start">
+              <div key={index} className="mb-4 p-2  border border-purple-800 rounded-lg flex flex-col items-start">
             
-                  <p className="text-sm font-medium m-2">
-                    <b>Prompt: </b>
+                  <p className="text-sm font-medium m-2 ">
+                    <b className='text-purple-400'>Prompt: </b>
                     {track.prompt}
                   </p>
                   <audio controls className="w-full">
@@ -219,7 +192,7 @@ const MusicGenerator: React.FC = () => {
                       setSelectedTrack(track);
                     }}
                     className={`px-4 py-2 rounded-lg font-bold ${
-                      selectedTrack === track ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-800'
+                      selectedTrack === track ? 'bg-purple-500 hover:bg-purple-600' : 'bg-gray-400 text-gray-800'
                     }`}
                   >
                     {selectedTrack === track ? 'Selected' : 'Select'}

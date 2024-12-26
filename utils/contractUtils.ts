@@ -394,71 +394,66 @@ const contractABI =[
 const contractAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
 
 
-function normalizeProxyData(data) {
-  return JSON.parse(
-    JSON.stringify(data, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    )
-  );
-}
-
-
-// Function to create contract instance with signer
-function getContract(signer) {
-  return new ethers.Contract(contractAddress, contractABI, signer);
-}
-
-// Function to get submission fee
-export async function getSubmissionFee(walletSdk) {
-  const provider = new ethers.BrowserProvider(walletSdk.ethereum);
-  const signer = await provider.getSigner();
-  const contract = getContract(signer);
-  return await contract.SUBMISSION_FEE();
-}
-
-// Function to submit music
-export async function submitMusic(walletSdk, musicUrl, theme, prompt) {
-  const provider = new ethers.BrowserProvider(walletSdk.ethereum);
-  const signer = await provider.getSigner();
-  const contract = getContract(signer);
-
-  // Get submission fee
-  const submissionFee = await getSubmissionFee(walletSdk);
+function normalizeProxyData(data: any): any {
+	return JSON.parse(
+	  JSON.stringify(data, (key, value) => (typeof value === 'bigint' ? value.toString() : value))
+	);
+  }
   
-  // Submit music
-  const tx = await contract.submitMusic(musicUrl, theme, prompt, { value: submissionFee });
-  return tx;
-}
-
-// Function to vote on a submission
-export async function voteOnSubmission(walletSdk, submissionIndex) {
-  const provider = new ethers.BrowserProvider(walletSdk.ethereum);
-  const signer = await provider.getSigner();
-  const contract = getContract(signer);
-
-  const tx = await contract.vote(submissionIndex);
-  return tx;
-}
-
-// Function to get winners
-export async function getWinners(walletSdk) {
-  const provider = new ethers.BrowserProvider(walletSdk.ethereum);
-  const signer = await provider.getSigner();
-  const contract = getContract(signer);
-
-  const winners = await contract.getWinners();
-  return winners;
-}
-
-
-export async function getContestDetails(walletSdk) {
-  const provider = new ethers.BrowserProvider(walletSdk.ethereum);
-  const signer = await provider.getSigner();
-  const contract = getContract(signer);
-
-  const submissions = await contract.getSubmissions();
+  // Function to create contract instance with signer
+  function getContract(signer: ethers.Signer): ethers.Contract {
+	return new ethers.Contract(contractAddress, contractABI, signer);
+  }
   
-
-
-  return normalizeProxyData(submissions);
-}
+  // Function to get the submission fee
+  export async function getSubmissionFee(walletSdk: any): Promise<string> {
+	const provider = new ethers.BrowserProvider(walletSdk.ethereum);
+	const signer = await provider.getSigner();
+	const contract = getContract(signer);
+	const fee: any = await contract.SUBMISSION_FEE();
+	return fee.toString();
+  }
+  
+  // Function to submit music
+  export async function submitMusic(
+	walletSdk: any,
+	musicUrl: string,
+	theme: string,
+	prompt: string
+  ): Promise<void> {
+	const provider = new ethers.BrowserProvider(walletSdk.ethereum);
+	const signer = await provider.getSigner();
+	const contract = getContract(signer);
+	const submissionFee:any = await contract.SUBMISSION_FEE();
+	const transaction = await contract.submitMusic(musicUrl, theme, prompt, {
+	  value: submissionFee,
+	});
+	await transaction.wait();
+  }
+  
+  // Function to fetch submissions
+  export async function getContestDetails(walletSdk: any): Promise<any[]> {
+	const provider = new ethers.BrowserProvider(walletSdk.ethereum);
+	const signer = await provider.getSigner();
+	const contract = getContract(signer);
+	const submissions = await contract.getSubmissions();
+	return normalizeProxyData(submissions);
+  }
+  
+  // Function to fetch winners
+  export async function getWinners(walletSdk: any): Promise<any[]> {
+	const provider = new ethers.BrowserProvider(walletSdk.ethereum);
+	const signer = await provider.getSigner();
+	const contract = getContract(signer);
+	const winners = await contract.getWinners();
+	return normalizeProxyData(winners);
+  }
+  
+  // Function to vote for a submission
+  export async function voteOnSubmission(walletSdk: any, submissionIndex: number): Promise<void> {
+	const provider = new ethers.BrowserProvider(walletSdk.ethereum);
+	const signer = await provider.getSigner();
+	const contract = getContract(signer);
+	const transaction = await contract.vote(submissionIndex);
+	await transaction.wait();
+  }

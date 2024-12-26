@@ -7,12 +7,21 @@ import PreviousPage from "./previous_page"
 import { ToastContainer } from "react-toastify"
 
 const HomeScreen = () => {
+
+  const tabValues = ['today', 'generate', 'previous'];
+  
   return (
     <Tabs defaultValue="today">
-  <TabsList className="w-[100vw] max-w-[24rem] mt-5 ">
-    <TabsTrigger value="today" className="w-[30%]">Today</TabsTrigger>
-    <TabsTrigger value="generate" className="w-[30%]">Generate</TabsTrigger>
-    <TabsTrigger value="previous" className="w-[30%]">Previous</TabsTrigger>
+  <TabsList className="w-[100vw] max-w-[24rem] mt-5 bg-gradient-to-br from-black via-gray-900 to-purple-950 text-gray-200 ">
+  {tabValues.map((value) => (
+      <TabsTrigger
+        key={value}
+        value={value}
+        className="w-[30%] data-[state=active]:bg-purple-400"
+      >
+        {value.charAt(0).toUpperCase() + value.slice(1)} {/* Capitalizes the first letter */}
+      </TabsTrigger>
+    ))}
   </TabsList>
   <TabsContent value="today" ><TodayPage></TodayPage></TabsContent>
   <TabsContent value="generate"><PromptPage></PromptPage></TabsContent>
