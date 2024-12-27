@@ -71,10 +71,19 @@ The decentralized nature of the platform empowers users, promoting fair particip
 ### **Demo for Rhythm**
 
 -   **Create Music**: Submit a prompt based on the day's theme. If no submissions, your track sets the theme.
+
+  ![image](https://github.com/user-attachments/assets/9dccf19e-a1be-4a95-ba88-38662b51fe8e)
+
     
 -   **Vote for Tracks**: Community votes on the submitted music.
+
+   ![image](https://github.com/user-attachments/assets/e54afa87-7797-41cd-b490-d061a5a00b21)
+
     
 -   **See Top Tracks**: Check out the community's favorite tracks from previous days.
+
+  ![image](https://github.com/user-attachments/assets/3d98c99e-03f9-4c11-ad2f-346473acfe99)
+
     
 -   **Track Your Wins**: Come back the next day to see if you won and check your wallet!
 
