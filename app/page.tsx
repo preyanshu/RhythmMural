@@ -10,18 +10,18 @@ import { use } from 'react';
 
 
 export default function Home() {
-	const { userAddr , walletSdk} = useAuth();
-
+	const { userAddr , walletSdk,chainId} = useAuth();
+    console.log(userAddr,chainId);
     
 
 	return (
 		<div className="page-container">
 
 
-			{!(userAddr) ? (
+			{((!userAddr) || (chainId!=='0x61')) ? (
+				
 				<WalletCard />
 				
-
 			) : (<>
 			
 			<HomeScreen /> 

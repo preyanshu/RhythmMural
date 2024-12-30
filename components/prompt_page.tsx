@@ -69,9 +69,11 @@ const MusicGenerator: React.FC = () => {
       // Fetch the current theme from the contract
       const currentTheme = await getCurrentTheme(walletSdk);
 
+      // let currentTheme = "";
+
       let themeToSubmit : any = currentTheme;
 
-      alert(JSON.stringify(currentTheme));
+      // alert(JSON.stringify(currentTheme));
       // let currentTheme = "";
   
     
@@ -97,13 +99,16 @@ const MusicGenerator: React.FC = () => {
 
       setIsSubmitting(false);
       toast.success('Music submitted successfully!');
-      alert(JSON.stringify(tx));
+      // alert(JSON.stringify(tx));
     } catch (error) {
       setIsUploading(false);
       setIsSubmitting(false);
       toast.error('Failed to submit music.');
       console.error('Error submitting music:', error);
       
+    }finally{
+      setIsSubmitting(false);
+      setIsUploading(false);
     }
   };
   

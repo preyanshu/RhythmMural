@@ -391,7 +391,7 @@ const contractABI =[
 	}
 ]
 
-const contractAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
+const contractAddress = "0x2674Bd7969c8eAFA392c31dE2081e80Df0b3Cd23";
 
 
 function normalizeProxyData(data: any): any {

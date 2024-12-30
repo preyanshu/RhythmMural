@@ -3,6 +3,7 @@ import { Trophy, Users, DollarSign, Calendar, Loader, Music } from "lucide-react
 import { get } from "http";
 import { getWinners } from "@/utils/contractUtils";
 import { useAuth } from "@/context/AuthContext";
+import { ethers } from "ethers";
 
 // Define types for each contest and winner structure
 interface Winner {
@@ -30,42 +31,7 @@ const PreviousPage: React.FC = () => {
   // Dummy function to simulate data fetching
   const fetchContests = async () => {
     try {
-      // setTimeout(() => {
-      //   setContests([
-      //     [
-      //       "submitter",
-      //       "/path/to/audio1.mp3",
-      //       "theme",
-      //       "promptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptpromptprompt",
-      //       "120", // votes as string
-      //       "500", // payout as string
-      //       "1708732800", // UNIX timestamp as string
-      //       "50", // voterShare as string
-      //     ],
-      //     [
-      //       "submitter2",
-      //       "/path/to/audio2.mp3",
-      //       "theme",
-      //       "prompt2",
-      //       "90", // votes as string
-      //       "300", // payout as string
-      //       "1708732800", // UNIX timestamp as string (same contest)
-      //       "50", // voterShare as string
-      //     ],
-      //     [
-      //       "submitter3",
-      //       "/path/to/audio3.mp3",
-      //       "theme",
-      //       "prompt3",
-      //       "150", // votes as string
-      //       "400", // payout as string
-      //       "1708732800", // UNIX timestamp as string (new contest)
-      //       "40", // voterShare as string
-      //     ],
-      //   ]);
-      //   setLoading(false);
-      // }, 2000);
-  
+     
       setLoading(true); // Set loading to true before fetching
       const contests = await getWinners(walletSdk);
       setContests(contests);
@@ -74,7 +40,7 @@ const PreviousPage: React.FC = () => {
       // Optionally set an error state or show a message to the user
       setError("Failed to fetch contests. Please try again.");
     } finally {
-      setLoading(false); // Ensure loading is set to false even if an error occurs
+      setLoading(false); 
     }
   };
   
@@ -163,7 +129,7 @@ const PreviousPage: React.FC = () => {
               <h2 className="text-xl font-semibold">{contest.theme}</h2>
             </div>
             <p className=" mb-4">
-              Voter Share: <span className="font-medium">${contest.voterShare}</span>
+              Voter Share: <span className="font-medium">{(Math.round(parseFloat(ethers.formatEther(BigInt(contest.voterShare || 0))) * 1000) / 1000).toFixed(3)} tBNB</span>
             </p>
             <p className=" mb-4">
               <Calendar className="inline-block w-4 h-4 mr-1" />
@@ -181,7 +147,7 @@ const PreviousPage: React.FC = () => {
  
   <p className="font-small mb-2">
     Winner {winnerIndex + 1}: <br />
-    <span className="break-words bg-[red]">{winner.submitter}</span>
+    <span className="break-words">{winner.submitter}</span>
   </p>
 
 
@@ -204,7 +170,7 @@ const PreviousPage: React.FC = () => {
       </div>
       <div className="flex items-center gap-2">
         <DollarSign className="text-cyan-600 w-4 h-4" />
-        <p className="text-gray-700 text-sm">Payout: {winner.payout} tBNB</p>
+        <p className="text-gray-700 text-sm">Payout: {(Math.round(parseFloat(ethers.formatEther(BigInt(winner.payout || 0))) * 1000) / 1000).toFixed(3)} tBNB</p>
       </div>
     </div>
   

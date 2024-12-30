@@ -80,10 +80,15 @@ export const generateMusic = async (data: { inputs: string }) => {
         body: JSON.stringify(data),
       }
     );
+   
+
+    console.log(response , "response");
 
     if (!response.ok) {
       throw new Error('Failed to fetch music');
     }
+
+
 
     const audioBlob = await response.blob(); // The actual audio blob
     return audioBlob; // Return the audio blob to the calling function

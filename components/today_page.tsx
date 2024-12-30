@@ -144,7 +144,7 @@ const TodayPage = () => {
           <DollarSign className="text-purple-500" />
           Total Funds:{" "}
           <span className="font-semibold text-gray-300">
-            {ethers.formatEther(BigInt(totalFunds || 0))} tBNB
+          {(Math.round(parseFloat(ethers.formatEther(BigInt(totalFunds || 0))) * 1000) / 1000).toFixed(3)} tBNB
           </span>
         </p>
       </div>
@@ -170,7 +170,7 @@ const TodayPage = () => {
           key={index}
           className="bg-gray-800 bg-opacity-75 p-4 rounded-lg shadow-md transition-transform hover:scale-105 border border-gray-700"
         >
-          <h2 className="text-xl font-bold text-purple-400 mb-2">
+          <h2 className="text-xl font-bold text-purple-400 mb-2"   onClick={() => alert(JSON.stringify(submission))}>
             Submission {index + 1}
           </h2>
           <p className="text-sm text-gray-400 mb-2">
@@ -178,12 +178,16 @@ const TodayPage = () => {
   <span className="block break-words">{submission[0]}</span>
 </p>
 
-          <div className="w-full mb-4 bg-gray-700 rounded-lg overflow-hidden">
+          <div className="w-full mb-4 bg-gray-700 rounded-lg overflow-hidden"
+        
+          >
+
+            
             <audio
               controls
               className="w-full"
               src={
-                "https://res.cloudinary.com/dbo7hzofg/raw/upload/v1735117350/xksbimwtfmc3ftxqrxax"
+                submission[1] 
               }
               preload="metadata"
             >
