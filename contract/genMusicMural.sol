@@ -51,6 +51,8 @@ contract MusicContest is AutomationCompatibleInterface {
     event VoterRewarded(address indexed voter, uint256 reward);
     event NoWinnersDeclared(string message);
     event InsufficientFunds(string message);
+    event OwnerTransfer(address indexed owner, uint256 amount);
+
 
 
 
@@ -61,7 +63,7 @@ contract MusicContest is AutomationCompatibleInterface {
     }
 
     function submitMusic(string memory _musicUrl, string memory _theme, string memory _prompt) external payable {
-        require(msg.value == SUBMISSION_FEE, "Submission fee is 0.02 native coin");
+        require(msg.value == SUBMISSION_FEE, "Submission fee is 0.002 native coin");
         totalFunds += msg.value;
 
         address[] memory addresses;
@@ -115,11 +117,11 @@ function performUpkeep(bytes calldata /* performData */) external override {
     }
 
     // Call the internal function to process the contest
-    this.processContest();
+    processContest();
 }
 
 /* Internal function to process the contest */
-function processContest() external {
+function processContest() internal  {
     // Update the timestamp regardless of the outcome
     lastTimeStamp = block.timestamp;
 
@@ -142,7 +144,7 @@ function processContest() external {
         return;
     }
 
-    uint256 numWinners = submissions.length > 3 ? 3 : submissions.length; // Max 3 winners or less, depending on submissions
+    uint256 numWinners = submissions.length > 5 ? 3 : 1; // Max 3 winners or less, depending on submissions
 
     // Find the top submissions using a simplified sorting approach
     uint256[] memory indices = new uint256[](numWinners);
@@ -156,17 +158,13 @@ function processContest() external {
             }
         }
 
-        if (submissions[i].votes > topVotes[minIndex]) {
-            topVotes[minIndex] = submissions[i].votes;
+        if (submissions[i].votes +1 > topVotes[minIndex]) {
+            topVotes[minIndex] = submissions[i].votes +1;
             indices[minIndex] = i;
         }
     }
 
-    // Calculate total votes for the top winners
-    uint256 totalWinnerVotes = 0;
-    for (uint256 i = 0; i < numWinners; i++) {
-        totalWinnerVotes += topVotes[i];
-    }
+
 
     // Count total voters (number of voters in all submissions)
     uint256 totalVoters = 0;
@@ -175,7 +173,7 @@ function processContest() external {
     }
 
     // Calculate owner, winner, and voter shares
-    uint256 ownerShare = (totalFunds * 5) / 100; // 5% for owner
+    uint256 ownerShare = (totalFunds * 5) / 100; // 5% for owner 
     uint256 remainingFunds = totalFunds - ownerShare;
 
     uint256 winnerShare;
@@ -192,15 +190,18 @@ function processContest() external {
         voterShare = remainingFunds - winnerShare;
     }
 
+     uint256 voterReward = voterShare /totalVoters;
+
     // Transfer 5% to the contract owner
     if (owner != address(0) && ownerShare > 0) {
         payable(owner).transfer(ownerShare);
+         emit OwnerTransfer(owner, ownerShare);
     }
 
     // Distribute rewards among winners and voters
     for (uint256 i = 0; i < numWinners; i++) {
         uint256 index = indices[i];
-        uint256 payout = totalWinnerVotes == 0 ? (winnerShare / numWinners) : (submissions[index].votes * winnerShare) / totalWinnerVotes;
+        uint256 payout = totalVoters == 0 ? (winnerShare / numWinners) : (submissions[index].votes * winnerShare) / totalVoters;
 
         winners.push(
             Winner({
@@ -228,7 +229,7 @@ function processContest() external {
 
         // Handle voter rewards
         if (submissions[index].voters.length > 0) {
-            uint256 voterReward = voterShare / submissions[index].voters.length;
+           
             for (uint256 j = 0; j < submissions[index].voters.length; j++) {
                 if (voterReward > 0 && submissions[index].voters[j] != address(0)) {
                     payable(submissions[index].voters[j]).transfer(voterReward);
