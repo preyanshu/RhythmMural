@@ -8,22 +8,22 @@
 import { useEffect, useState } from 'react';
 
 export const TESTNET_PARAMS = {
-    chainId: '97', // Hardhat's default chain ID
-    chainName: 'BNB Chain Testnet',
-    rpcUrls: ['https://data-seed-prebsc-1-s1.bnbchain.org:8545'], // Hardhat's default RPC URL
+    chainId: '5611', // Hardhat's default chain ID
+    chainName: 'opBNB Testnet',
+    rpcUrls: ['https://opbnb-testnet-rpc.bnbchain.org'], // Hardhat's default RPC URL
     nativeCurrency: {
       name: 'tBNB',
       symbol: 'tBNB',
       decimals: 18,
     },
-    blockExplorerUrls: [], // Local networks typically don't have block explorers
+    blockExplorerUrls: ['https://opbnb-testnet.bscscan.com'], // Local networks typically don't have block explorers
   }
 
 export default function useCurrentUser() {
 	const [userAddr, setUserAddr] = useState(null);
 	const [chainId, setChainId] = useState<any>(null);
 	const [walletSdk, setWalletSdk] = useState<any>(null);
-	const DEFAULT_CHAIN_ID = '0x61'; 
+	const DEFAULT_CHAIN_ID = '0x15EB'; 
 
 	useEffect(() => {
 		// Only initialize the SDK on the client

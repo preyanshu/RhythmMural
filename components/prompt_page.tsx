@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import { Loader } from 'lucide-react';
-import { Music, Lightbulb, AlertTriangle } from 'lucide-react';
+import { Music} from 'lucide-react';
 import { submitMusic , getCurrentTheme } from '@/utils/contractUtils';
 import { useAuth } from '@/context/AuthContext';
 import { toast, ToastContainer } from 'react-toastify'; 
@@ -111,15 +111,18 @@ const MusicGenerator: React.FC = () => {
       setIsUploading(false);
     }
   };
+
+
   
 
   return (
-    <div className="w-[100vw] max-w-[24rem]  min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-black via-gray-900 to-purple-950 text-gray-200">
+    <div className="w-[100vw] max-w-[24rem]  min-h-screen flex items-center justify-center p-6 bg-[#0F1522] text-gray-200">
       <div className="bg-gray-800 text-gray-300 shadow-xl rounded-xl p-8 max-w-xl w-full">
         <h1 className="text-xl font-extrabold mb-6 text-center text-purple-400 flex items-center justify-center">
           <Music className="w-8 h-8 mr-2 " />
           Submit Your Music Idea
         </h1>
+
 
         <p className="text-lg mb-6 text-center">
           Create your musical piece based on today's theme. Use your imagination to craft a prompt and let the AI generate something extraordinary
@@ -133,11 +136,11 @@ const MusicGenerator: React.FC = () => {
           className="p-4 border border-gray-300 rounded-lg mb-4 w-full text-black focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
 
-<div className="flex justify-center space-x-4 mb-6">
+<div className="flex justify-center space-y-4 mb-6 flex-col">
   <button
     onClick={() => queryMusic({ inputs: prompt })}
     disabled={isLoading || !prompt}
-    className={`px-6 py-1 rounded-lg text-white font-bold border-2 border-pink-500 ${
+    className={`px-6 py-3 rounded-lg text-white font-bold border-2 border-pink-500 ${
       isLoading
         ? 'bg-pink-400'
         : 'bg-pink-500 hover:bg-pink-600 hover:shadow-lg hover:shadow-pink-500'
@@ -153,18 +156,18 @@ const MusicGenerator: React.FC = () => {
   <button
     onClick={handleSubmit}
     disabled={isUploading || !selectedTrack || isSubmitting}
-    className={`px-6 py-3 rounded-lg text-white font-bold border-2 border-purple-500 ${
+    className={`px-6 py-3 rounded-lg text-white font-bold border-2 border-purple-500 flex justify-center ${
       (isUploading || isSubmitting)
         ? 'bg-purple-400'
         : 'bg-purple-500 hover:bg-purple-600 hover:shadow-lg hover:shadow-purple-500'
     } disabled:opacity-50 focus:outline-none focus:ring-4 focus:ring-purple-500`}
   >
-    <div className="flex">
+   
       {(isUploading || isSubmitting) && (
-        <Loader className="animate-spin w-5 h-5 mx-auto mr-3" />
+        <Loader className="animate-spin w-5 h-5 mx-2" />
       )}
-      {isUploading ? 'Uploading' : isSubmitting ? 'Submitting' : 'Submit (0.02 tBNB)'}
-    </div>
+      {isUploading ? 'Uploading' : isSubmitting ? 'Submitting' : 'Submit (0.002 tBNB)'}
+  
   </button>
 </div>
 
@@ -227,11 +230,11 @@ const MusicGenerator: React.FC = () => {
 
     <div className="mt-8 text-center">
           <p className="text-yellow-600 font-bold flex items-center justify-center">
-            <Lightbulb className="w-5 h-5 mr-2" />
+            {/* <Lightbulb className="w-5 h-5 mr-2" /> */}
             Avg Generation Time: ~40 seconds
           </p>
           <p className="text-red-500 font-medium mt-4 flex items-center justify-center">
-            <AlertTriangle className="w-5 h-5 mr-2" />
+            {/* <AlertTriangle className="w-5 h-5 mr-2" /> */}
             Your progress will be lost if you change tabs.
           </p>
         </div>

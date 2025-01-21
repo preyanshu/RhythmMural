@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState , useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Music, User, DollarSign, Clock, Palette, Loader } from "lucide-react";
 import { getContestDetails, voteOnSubmission } from "@/utils/contractUtils";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ethers } from "ethers";
+import { FaPlay, FaPause } from 'react-icons/fa';
 
 
 interface Submission {
@@ -90,8 +91,22 @@ const TodayPage = () => {
       .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const togglePlayPause = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-purple-950 text-gray-200 p-6 w-full max-w-[24rem] mx-auto">
+    <div className="min-h-screen bg-[#0F1522] text-gray-200 p-6 w-full max-w-[24rem] mx-auto">
 
   {/* Error Section */}
   {!isLoading && error && (
@@ -165,51 +180,66 @@ const TodayPage = () => {
     </div>
   ) : (
     <div className="space-y-4">
-      {submissions.map((submission, index) => (
-        <div
-          key={index}
-          className="bg-gray-800 bg-opacity-75 p-4 rounded-lg shadow-md transition-transform hover:scale-105 border border-gray-700"
+    {submissions.map((submission, index) => (
+      <div
+        key={index}
+        className="bg-gray-800 bg-opacity-75 p-4 rounded-lg shadow-md transition-transform hover:scale-105 border border-gray-700"
+      >
+        <h2
+          className="text-xl font-bold text-purple-400 mb-2"
+          onClick={() => alert(JSON.stringify(submission))}
         >
-          <h2 className="text-xl font-bold text-purple-400 mb-2"   onClick={() => alert(JSON.stringify(submission))}>
-            Submission {index + 1}
-          </h2>
-          <p className="text-sm text-gray-400 mb-2">
-  <strong>Submitter:</strong>{" "}
-  <span className="block break-words">{submission[0]}</span>
-</p>
-
-          <div className="w-full mb-4 bg-gray-700 rounded-lg overflow-hidden"
-        
-          >
-
-            
-            <audio
-              controls
-              className="w-full"
-              src={
-                submission[1] 
-              }
-              preload="metadata"
-            >
-              Your browser does not support the audio element.
-            </audio>
-          </div>
-          {
-  voters.includes(userAddr) ? (
-    <span className="text-gray-500">Already Voted</span>
-  ) : (
-    <button
-      className="bg-purple-800 text-gray-100 py-2 px-4 rounded-md shadow-md hover:bg-purple-700 transition"
-      onClick={() => handleVote(index)}
-    >
-      Vote
-    </button>
-  )
-}
-
+          Submission {index + 1}
+        </h2>
+        <p className="text-sm text-gray-400 mb-2">
+          <strong>Submitter:</strong>{" "}
+          <span className="block break-words">{submission[0]}</span>
+        </p>
+  
+        <div className="relative w-full mb-4 bg-gray-700 rounded-lg overflow-hidden">
+          {/* Music Image */}
+          <img
+            src="https://res.cloudinary.com/dbo7hzofg/image/upload/v1737397893/StockCake-Neon_Music_Vibes_1737397469_e64or9.jpg" // Replace this with the actual image path
+            alt="Music"
+            className="w-full object-cover h-40"
+          />
+          
+          {/* Play Button */}
+          <button
+        className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white rounded-full w-16 h-16 mx-auto my-auto transition-transform transform hover:scale-110"
+        onClick={togglePlayPause}
+      >
+        {isPlaying ? <FaPause size={24} /> : <FaPlay size={24} />}
+      </button>
         </div>
-      ))}
-    </div>
+        
+        {/* Audio Status Bar */}
+        <audio
+          id={`audio-${index}`}
+          controls
+          className="w-full hidden"
+          src={submission[1]}
+          preload="metadata"
+          ref={audioRef}
+        >
+          Your browser does not support the audio element.
+        </audio>
+        
+        {voters.includes(userAddr) ? (
+          <span className="text-gray-500">Already Voted</span>
+        ) : (
+          <button
+            className="bg-purple-800 text-gray-100 py-2 px-4 rounded-md shadow-md hover:bg-purple-700 transition w-full"
+            onClick={() => handleVote(index)}
+          >
+            Vote
+          </button>
+        )}
+      </div>
+    ))}
+  </div>
+  
+
   )}
 
   <ToastContainer />

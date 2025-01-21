@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Trophy, Users, DollarSign, Calendar, Loader, Music } from "lucide-react";
 import { get } from "http";
-import { getWinners } from "@/utils/contractUtils";
+import { getWinners , mintMusicNFT } from "@/utils/contractUtils";
 import { useAuth } from "@/context/AuthContext";
 import { ethers } from "ethers";
+import { uploadJsonToCloudinary } from "@/utils/musicgenUtils";
+import {toast} from 'react-toastify';
 
+import { log } from "console";
 // Define types for each contest and winner structure
 interface Winner {
   submitter: string;
@@ -12,6 +15,9 @@ interface Winner {
   prompt: string;
   votes: string;
   payout: string;
+  voters: string[];
+  voterMinted : boolean[]
+  originalIndex: number;
 }
 
 interface Contest {
@@ -25,12 +31,14 @@ const PreviousPage: React.FC = () => {
   const [contests, setContests] = useState<(string[])[]>([]); // Type the contests as an array of arrays or null
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [mintLoading, setMintLoading] = useState<boolean>(false);
 
-  const { walletSdk } = useAuth();
+  const { walletSdk , userAddr } = useAuth();
 
   // Dummy function to simulate data fetching
   const fetchContests = async () => {
     try {
+
      
       setLoading(true); // Set loading to true before fetching
       const contests = await getWinners(walletSdk);
@@ -43,11 +51,70 @@ const PreviousPage: React.FC = () => {
       setLoading(false); 
     }
   };
+
+  const handleMint = async (winner: Winner) => {
+    const metadata = {
+      description: `Winning Rhythm`,
+      external_url: winner.musicUrl,
+      image: "https://res.cloudinary.com/dbo7hzofg/image/upload/v1737397893/StockCake-Neon_Music_Vibes_1737397469_e64or9.jpg", // Replace with actual image URL
+      name: `Winner: ${winner.originalIndex}`,
+      attributes: [
+        {
+          trait_type: "Submitter",
+          value: winner.submitter,
+        },
+        {
+          trait_type: "Prompt",
+          value: winner.prompt,
+        },
+        {
+          display_type: "number",
+          trait_type: "Votes",
+          value: parseInt(winner.votes),
+        },
+        {
+          display_type: "boost_number",
+          trait_type: "Payout",
+          value: parseFloat(winner.payout),
+        },
+      ],
+    };
+  
+    console.log("NFT Metadata:", metadata);
+  
+    // Upload metadata to Cloudinary (or Arweave/IPFS if needed)
+    try {
+      setMintLoading(true)
+      const url = await uploadJsonToCloudinary(metadata);
+      console.log("Metadata uploaded:", url);
+
+      // Mint the NFT
+
+      const tx = await mintMusicNFT(walletSdk,winner.originalIndex ,url);
+
+      console.log("NFT Minted:", tx);
+
+      toast.success('NFT Minted Successfully!');
+
+
+
+
+    } catch (error) {
+      
+      console.error("Error Minting NFT:", error);
+      toast.error('Failed to mint NFT.');
+
+    } finally{
+      setMintLoading(false)
+    }
+  };
   
 
   useEffect(() => {
     fetchContests();
   }, []);
+
+
 
   // Helper function to convert UNIX timestamp to readable date
   const formatDate = (timestamp: string): string => {
@@ -61,30 +128,38 @@ const PreviousPage: React.FC = () => {
 
   // Group contests based on theme, timestamp, and voterShare
   const groupedContests: Contest[] = contests && contests.length > 0 
-  ? contests.reduce((acc: Contest[], winner: string[]) => {
-      const [submitter, musicUrl, theme, prompt, votes, payout, timestamp, voterShare] = winner;
+  ? contests.reduce((acc: Contest[], winner: any, originalIndex: number) => {
+      const [submitter, musicUrl, theme, prompt, votes, payout, timestamp, voterShare, voters, voterMinted] = winner;
 
       const existingContest = acc.find(
         (contest) => contest.theme === theme && contest.timestamp === timestamp && contest.voterShare === voterShare
       );
 
       if (existingContest) {
-        existingContest.winners.push({ submitter, musicUrl, prompt, votes, payout });
+        existingContest.winners.push({ 
+          submitter, musicUrl, prompt, votes, payout, voters, voterMinted, originalIndex 
+        });
       } else {
         acc.push({
           theme,
           timestamp,
           voterShare,
-          winners: [{ submitter, musicUrl, prompt, votes, payout }],
+          winners: [{ submitter, musicUrl, prompt, votes, payout, voters, voterMinted, originalIndex }],
         });
       }
 
+      console.log("Original Index",acc);
+      
+
       return acc;
+
+      
     }, [])
   : [];
 
+
   return (
-    <div className="w-[100vw] max-w-[24rem]  min-h-screen p-4 bg-gradient-to-br from-black via-gray-900 to-purple-950 text-gray-200">
+    <div className="w-[100vw] max-w-[24rem]  min-h-screen p-4 bg-[#0F1522] text-gray-200">
       <h1 className="text-xl font-bold mb-8 text-purple-400 mt-4 w-full text-center">
         <Music className="inline " /> Here’s What Won Last Time
       </h1>
@@ -142,7 +217,13 @@ const PreviousPage: React.FC = () => {
             </p>
            </>}
 
-            {contest.winners.map((winner, winnerIndex) => (
+            {contest.winners.map((winner, winnerIndex) =>{ 
+              const voterIndex = userAddr ? winner.voters.indexOf(userAddr) : -1;
+              const hasMinted = winner.voterMinted[voterIndex]; 
+
+              console.log("wv",winner.voters.includes(userAddr) , winner.voters , userAddr)
+            
+           return (
   <div key={winnerIndex} className="bg-purple-400 p-3 rounded-lg mb-3 shadow-sm text-black">
  
   <p className="font-small mb-2">
@@ -163,6 +244,23 @@ const PreviousPage: React.FC = () => {
         Your browser does not support the audio element.
       </audio>
     </div>
+
+    {userAddr && winner.voters.includes(userAddr) && (
+  <button
+    onClick={() => handleMint(winner)}
+    disabled={mintLoading || hasMinted}
+    className={`px-6 py-1 rounded-lg text-white font-bold my-5 w-full ${
+      mintLoading ? 'bg-gray-800' : 'bg-gray-800 hover:shadow-lg'
+    } disabled:opacity-50 focus:outline-none focus:ring-4 focus:ring-pink-500`}
+  >
+    {mintLoading ? (
+      <Loader className="animate-spin w-5 h-5 mx-auto" />
+    ) : (
+      hasMinted ? 'NFT Already Minted' : 'Mint NFT'
+    )}
+  </button>
+)}
+
     <div className="flex items-center justify-between mt-3">
       <div className="flex items-center gap-2">
         <Users className=" w-4 h-4 text-cyan-600" />
@@ -175,7 +273,7 @@ const PreviousPage: React.FC = () => {
     </div>
   
   </div>
-))}
+)})}
   
           </div>
         ))

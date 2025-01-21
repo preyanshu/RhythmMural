@@ -18,7 +18,7 @@ export default function Home() {
 		<div className="page-container">
 
 
-			{((!userAddr) || (chainId!=='0x61')) ? (
+			{((!userAddr) || (chainId!=='0x15EB')) ? (
 				
 				<WalletCard />
 				

@@ -33,6 +33,38 @@ export const uploadToCloudinary = async (audioBlob: Blob): Promise<string> => {
   }
 };
 
+export const uploadJsonToCloudinary = async (jsonData: object): Promise<string> => {
+  const cloudinaryUrl = process.env.NEXT_PUBLIC_CLOUDINARY_URL as string;
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET as string;
+
+  if (!cloudinaryUrl || !uploadPreset) {
+    throw new Error('Missing Cloudinary configuration in environment variables');
+  }
+
+  const jsonBlob = new Blob([JSON.stringify(jsonData)], { type: 'application/json' });
+  const formData = new FormData();
+  formData.append('file', jsonBlob, 'data.json');
+  formData.append('upload_preset', uploadPreset);
+
+  try {
+    const response = await fetch(cloudinaryUrl, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload JSON to Cloudinary');
+    }
+
+    const result = await response.json();
+    return result.secure_url;
+  } catch (error) {
+    console.error('Error uploading JSON to Cloudinary:', error);
+    throw error;
+  }
+};
+
+
 // Generate music theme using Google Generative AI
 export const generateMusicTheme = async (prompt: string): Promise<string | null> => {
   const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY as string;

@@ -12,7 +12,7 @@ const HomeScreen = () => {
   
   return (
     <Tabs defaultValue="today">
-  <TabsList className="w-[100vw] max-w-[24rem] mt-5 bg-gradient-to-br from-black via-gray-900 to-purple-950 text-gray-200 ">
+  <TabsList className="w-[100vw] max-w-[24rem] mt-5 bg-[#0F1522] text-gray-200 ">
   {tabValues.map((value) => (
       <TabsTrigger
         key={value}
