@@ -242,7 +242,7 @@ const TodayPage = () => {
 
   )}
 
-  <ToastContainer />
+<ToastContainer theme="dark"></ToastContainer>
 </div>
 
 

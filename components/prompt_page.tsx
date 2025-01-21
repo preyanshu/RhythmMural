@@ -240,7 +240,7 @@ const MusicGenerator: React.FC = () => {
         </div>
       </div>
 
-   <ToastContainer></ToastContainer>
+      <ToastContainer theme="dark"></ToastContainer>
 
     </div>
   );

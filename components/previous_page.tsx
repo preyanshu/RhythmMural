@@ -5,7 +5,7 @@ import { getWinners , mintMusicNFT } from "@/utils/contractUtils";
 import { useAuth } from "@/context/AuthContext";
 import { ethers } from "ethers";
 import { uploadJsonToCloudinary } from "@/utils/musicgenUtils";
-import {toast} from 'react-toastify';
+import {toast, ToastContainer} from 'react-toastify';
 
 import { log } from "console";
 // Define types for each contest and winner structure
@@ -94,6 +94,7 @@ const PreviousPage: React.FC = () => {
 
       // console.log("NFT Minted:", tx);
       setMintLoading(false);
+      fetchContests();
       toast.success('NFT Minted Successfully!');
 
 
@@ -277,6 +278,8 @@ const PreviousPage: React.FC = () => {
           </div>
         ))
       )}
+
+<ToastContainer theme="dark"></ToastContainer>
     </div>
   );
 };
