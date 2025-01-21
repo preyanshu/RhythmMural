@@ -90,9 +90,9 @@ const PreviousPage: React.FC = () => {
 
       // Mint the NFT
 
-      // const tx = await mintMusicNFT(walletSdk,winner.originalIndex ,url);
+      const tx = await mintMusicNFT(walletSdk,winner.originalIndex ,url);
 
-      // console.log("NFT Minted:", tx);
+      console.log("NFT Minted:", tx);
       setMintLoading(false);
       fetchContests();
       toast.success('NFT Minted Successfully!');
@@ -248,7 +248,7 @@ const PreviousPage: React.FC = () => {
     {userAddr && winner.voters.includes(userAddr) && (
   <button
     onClick={() => handleMint(winner)}
-    disabled={mintLoading}
+    disabled={mintLoading || hasMinted}
     className={`px-6 py-1 rounded-lg text-white font-bold my-5 w-full ${
       mintLoading ? 'bg-gray-800' : 'bg-gray-800 hover:shadow-lg'
     } disabled:opacity-50 focus:outline-none focus:ring-4 focus:ring-pink-500`}
