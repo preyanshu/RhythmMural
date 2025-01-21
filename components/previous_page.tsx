@@ -197,7 +197,7 @@ const PreviousPage: React.FC = () => {
           <Loader className="animate-spin text-purple-400 w-8 h-8" />
         </div>
       ) : (
-        groupedContests.map((contest, contestIndex) => (
+        groupedContests.slice().reverse().map((contest, contestIndex) => (
           <div key={contestIndex} className="border  border-purple-800 rounded-lg p-4 mb-6 shadow-sm bg-gray-800 text-gray-300">
             <div className="flex items-center mb-2">
               <Trophy className="text-yellow-500 mr-2" />
