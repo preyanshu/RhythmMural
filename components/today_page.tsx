@@ -6,8 +6,6 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ethers } from "ethers";
 import { FaPlay, FaPause } from 'react-icons/fa';
-import { getAccount } from '@wagmi/core';
-import { wagmiConfig } from "@/utils/wagmiConfig";
 
 
 interface Submission {
@@ -19,7 +17,6 @@ interface Submission {
 
 
 const TodayPage = () => {
-   const account = getAccount(wagmiConfig);
   const { walletSdk, userAddr } = useAuth();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [totalVotes, setTotalVotes] = useState<number>(0);
@@ -64,7 +61,7 @@ const TodayPage = () => {
   }, [endTime]);
 
   const handleVote = async (submissionIndex: number) => {
-    if (voters.includes(String(account.address))) {
+    if (voters.includes(userAddr)) {
       // If the user has already voted, show an error toast
       toast.error("You can only vote once per Mural contest.");
       return; // Exit the function early if the user has already voted
@@ -74,7 +71,7 @@ const TodayPage = () => {
       const tx = await voteOnSubmission(walletSdk, submissionIndex);
       
       // Add the user's address to the voters list
-      setVoters((prevVoters) => [...prevVoters, String(account.address)]);
+      setVoters((prevVoters) => [...prevVoters, userAddr]);
 
       toast.success(`Voted for submission ${submissionIndex + 1}`);
     } catch (error) {
@@ -228,7 +225,7 @@ const TodayPage = () => {
           Your browser does not support the audio element.
         </audio>
         
-        {voters.includes(String(account.address)) ? (
+        {voters.includes(userAddr) ? (
           <span className="text-gray-500">Already Voted</span>
         ) : (
           <button
