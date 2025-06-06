@@ -5,7 +5,6 @@
 Rhythm Mural is a fun, community-driven music contest where users create and vote on unique tracks, with rewards for both creators and voters
 
 - **GitHub Repo**: [Rhythm Project GitHub](https://github.com/preyanshu/RhythmMural)
-- **Telegram Mini App**: [Rhythm Telegram Mini App](https://t.me/rhythm_mural_bot/mural)
 -  **Demo Video**: [YT video Link](https://www.youtube.com/shorts/O0tSD1HB3Sc)
 
 
